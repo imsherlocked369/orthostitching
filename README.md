@@ -4,7 +4,7 @@ Fast, practical UAV  photo stitching (nadir)  using OpenCV ORB/AKAZE only (no ne
 
 This version adds a pixel-wise overlap governor (coverage cap) and an optional sharper override that can replace capped pixels only when the new view is measurably sharper.
 
-
+# This stsiches 100 images in around 3 mins!!
 
 Features
 
@@ -25,9 +25,12 @@ Features
 
 
 ## Requirements
-
 - Python 3.9+
 - opencv-python
 - numpy
 - Pillow
+
+![mosaic](https://github.com/user-attachments/assets/692914f6-8987-400f-884c-56fc5bb8bc5a)
+
+  
 

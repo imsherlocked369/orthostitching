@@ -31,5 +31,3 @@ Features
 - numpy
 - Pillow
 
-![Media (1)](https://github.com/user-attachments/assets/556ee9b0-51cb-40dc-b133-1598c02b7ff6)
-

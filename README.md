@@ -6,6 +6,8 @@ This version adds a pixel-wise overlap governor (coverage cap) and an optional s
 
  This stitches 100 images in around 3 mins with around 90% accuracy !!
 
+ This is an ongoing project and I'll keep updating the fils the file best_one_yet.py is indeed the BEST ONE YET!
+
 Features
 
 - OpenCV-only stitching: ORB / AKAZE / Hybrid (union of both)

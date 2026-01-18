@@ -4,7 +4,7 @@ Fast, practical UAV  photo stitching (nadir)  using OpenCV ORB/AKAZE only (no ne
 
 This version adds a pixel-wise overlap governor (coverage cap) and an optional sharper override that can replace capped pixels only when the new view is measurably sharper.
 
-# This stsiches 100 images in around 3 mins with around 90% accuracy !!
+ This stitches 100 images in around 3 mins with around 90% accuracy !!
 
 Features
 

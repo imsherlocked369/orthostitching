@@ -16,7 +16,7 @@
 ---
 
 ## 1. Introduction
-The provided script implements a computationally efficient UAV image stitching pipeline without neural networks. It relies on hand-crafted keypoint detectors, geometric alignment under a nadir assumption, multi-scale blending, and adaptive overlap control. The output is a rectified orthomosaic suitable for geospatial analysis and mapping applications.
+The provided script implements a computationally efficient UAV image stitching pipeline without neural networks. It relies on hand-crafted keypoint detectors, geometric alignment under a nadir assumption, and multi-scale blending for efficient ortho-mosaic generation.
 
 ---
 
@@ -34,7 +34,7 @@ The pipeline supports **ORB** (Oriented FAST and Rotated BRIEF) [1] and **AKAZE*
 - **AKAZE** builds a nonlinear scale space via Fast Explicit Diffusion (FED), then detects features from Hessian responses and computes a Modified-Local Difference Binary (M-LDB) descriptor.
 
 ### 2.2 Grid-Uniform Keypoint Distribution
-To prevent clusters of features in highly textured regions, the code partitions each image into a regular grid of $g_x \times g_y$ cells and retains only the top $N_{\text{per\_cell}}$ keypoints (by response magnitude). This ensures uniform spatial coverage and reduces redundancy.
+To prevent clusters of features in highly textured regions, the code partitions each image into a regular grid of $g_x \times g_y$ cells and retains only the top $N_{\text{per\_cell}}$ keypoints (by response strength) per cell. This ensures spatially well-distributed correspondences.
 
 ---
 
@@ -49,7 +49,7 @@ $$
 \frac{\|d_q - d_{n1}\|}{\|d_q - d_{n2}\|} < \tau ,
 $$
 
-where $\tau = 0.75$ (Hamming distance for ORB/AKAZE binary descriptors). Mutual consistency (cross-check) is enforced: a match is kept only if $q \rightarrow n$ and $n \rightarrow q$ are both the best matches in their respective directions. This reduces false positives.
+where $\tau = 0.75$ (Hamming distance for ORB/AKAZE binary descriptors). Mutual consistency (cross-check) is enforced: a match is kept only if $q \rightarrow n$ and $n \rightarrow q$ are both the best matches in their respective direction.
 
 ### 3.2 Scale Handling
 Images are resized for matching (controlled by `match_max_side`) to reduce computational load, but keypoint coordinates are later scaled back to original resolution before geometric fitting.
@@ -85,7 +85,7 @@ where $H_{ij}$ is the map from image $i$ to $j$. This assumes a sequential fligh
 ## 5. Image Warping and Canvas Construction
 
 ### 5.1 Canvas Bounds and Offset
-All image corners are projected using their global transforms. The axis-aligned bounding box of the projected points, enlarged by a margin, defines the canvas dimensions $(W_c, H_c)$. An offset vector is computed to ensure all coordinates are non-negative:
+All image corners are projected using their global transforms. The axis-aligned bounding box of the projected points, enlarged by a margin, defines the canvas dimensions $(W_c, H_c)$. An offset vector $\mathbf{o}$ is computed to shift the mosaic so that the top-left corner aligns with the origin:
 
 $$
 \mathbf{o} = -\min(\text{projected points}) + \text{margin}.
@@ -108,7 +108,7 @@ where $T_{\text{off}}$ incorporates the offset $\mathbf{o}$, and $T_{\text{crop}
 ## 6. Blending and Compositing
 
 ### 6.1 Laplacian Pyramid Blending
-To smooth seams, a multi-scale fusion from [7] is employed. An image $I$ is decomposed into a Gaussian pyramid $\{G_0 = I, G_1, \dots, G_{L-1}\}$ and a Laplacian pyramid $\{L_0, \dots, L_{L-1}\}$ where each Laplacian level is:
+To smooth seams, a multi-scale fusion from [7] is employed. An image $I$ is decomposed into a Gaussian pyramid $\{G_0 = I, G_1, \dots, G_{L-1}\}$ and a Laplacian pyramid $\{L_0, \dots, L_{L-1}\}$ where
 
 $$
 L_k = G_k - \text{expand}(G_{k+1}), \quad \text{expand}(\cdot) = \text{pyrUp}(\cdot).
@@ -136,7 +136,7 @@ where $\nabla$ is approximated by a Laplacian or Sobel operator. This gives high
 ## 7. Overlap Governor and Sharpness Override
 
 ### 7.1 Coverage Cap
-A per-pixel counter `coverage_count` tracks how many images have already contributed. New pixels are written only if the count is below a threshold $C_{\max}$ (default 3). This prevents over-blending and reduces computational overhead.
+A per-pixel counter `coverage_count` tracks how many images have already contributed. New pixels are written only if the count is below a threshold $C_{\max}$ (default 3). This prevents over-blending and limits the number of fused layers.
 
 ### 7.2 Sharper-Override Option
 Even when a pixel has reached $C_{\max}$, it may be replaced if the new image provides a **significantly sharper** local patch. Sharpness is measured by the gradient magnitude:
@@ -157,7 +157,7 @@ with $\alpha = 0.10$. This effectively performs a local maximum contrast selecti
 
 ## 8. Post-processing: Auto-Rotate
 
-The dominant orientation of the mosaic is computed via PCA of foreground pixel coordinates (mask > 0). The principal axis (largest eigenvector of the covariance matrix) is aligned with the vertical, yielding a rotation angle:
+The dominant orientation of the mosaic is computed via PCA of foreground pixel coordinates (mask > 0). The principal axis (largest eigenvector of the covariance matrix) is aligned with the vertical, y-axis, by rotating the entire mosaic. The rotation angle is:
 
 $$
 \theta = 90^\circ - \arctan2(\text{eigvec}_y, \text{eigvec}_x).
@@ -168,7 +168,7 @@ This simple rectification assumes the scene's long edge is roughly vertical, oft
 ---
 
 ## 9. Conclusion
-The pipeline integrates well-established computer vision techniques—binary features, robust pairwise estimation, multi-scale blending, and overlap management—to produce UAV ortho-mosaics efficiently without deep learning. The sequential chaining assumption trades global optimality for computational speed, making it suitable for real-time or near-real-time UAV workflows.
+The pipeline integrates well-established computer vision techniques—binary features, robust pairwise estimation, multi-scale blending, and overlap management—to produce UAV ortho-mosaics efficiently and reliably without deep learning.
 
 ---
 
